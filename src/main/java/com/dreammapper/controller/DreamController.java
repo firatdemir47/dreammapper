@@ -1,6 +1,7 @@
 package com.dreammapper.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,7 +12,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dreammapper.dto.DreamDTO;
+import com.dreammapper.mapper.DreamMapper;
 import com.dreammapper.model.Dream;
+import com.dreammapper.model.User;
 import com.dreammapper.service.DreamService;
 import com.dreammapper.service.UserService;
 
@@ -26,25 +30,34 @@ public class DreamController {
 	private final UserService userService;
 
 	@PostMapping
-	public ResponseEntity<Dream> saveDream(@RequestBody Dream dream) {
+	public ResponseEntity<DreamDTO> saveDream(@RequestBody DreamDTO dreamDTO) {
+		User user = userService.getUserById(dreamDTO.getUserId())
+				.orElseThrow(() -> new RuntimeException("User not found"));
+		Dream dream = DreamMapper.toEntity(dreamDTO, user);
 		Dream savedDream = dreamService.saveDream(dream);
-		return ResponseEntity.ok(savedDream);
+		return ResponseEntity.ok(DreamMapper.toDTO(savedDream));
+
 	}
 
 	@GetMapping
-	public ResponseEntity<List<Dream>> getAllDreams() {
-		return ResponseEntity.ok(dreamService.getAllDreams());
+	public ResponseEntity<List<DreamDTO>> getAllDreams() {
+		List<DreamDTO> dreams = dreamService.getAllDreams().stream().map(DreamMapper::toDTO)
+				.collect(Collectors.toList());
+		return ResponseEntity.ok(dreams);
 	}
 
 	@GetMapping("/user/{userId}")
-	public ResponseEntity<List<Dream>> getDreamsByUser(@PathVariable Long userId) {
-		return userService.getUserById(userId).map(user -> ResponseEntity.ok(dreamService.getDreamsByUser(user)))
-				.orElse(ResponseEntity.notFound().build());
+	public ResponseEntity<List<DreamDTO>> getDreamsByUser(@PathVariable Long userId) {
+		return userService.getUserById(userId)
+				.map(user -> dreamService.getDreamsByUser(user).stream().map(DreamMapper::toDTO)
+						.collect(Collectors.toList()))
+				.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<Dream> getDreamById(@PathVariable Long id) {
-		return dreamService.getDreamById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+	public ResponseEntity<DreamDTO> getDreamById(@PathVariable Long id) {
+		return dreamService.getDreamById(id).map(DreamMapper::toDTO).map(ResponseEntity::ok)
+				.orElse(ResponseEntity.notFound().build());
 	}
 
 	@DeleteMapping("/{id}")

@@ -36,7 +36,7 @@ public class Dream {
 
 	private String mood;
 
-	private LocalDateTime createdAT;
+	private LocalDateTime createdAt;
 
 	@ManyToOne
 	@JoinColumn(name = "user_id")
@@ -44,6 +44,6 @@ public class Dream {
 
 	@PrePersist
 	public void prePersist() {
-		createdAT = LocalDateTime.now();
+		createdAt = LocalDateTime.now();
 	}
 }

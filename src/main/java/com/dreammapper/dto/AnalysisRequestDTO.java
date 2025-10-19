@@ -15,7 +15,7 @@ import lombok.Setter;
 public class AnalysisRequestDTO {
 
 	@NotBlank(message = "Text cannot be empty")
-	private String test;
+	private String text;
 
 	private Long userId;
 

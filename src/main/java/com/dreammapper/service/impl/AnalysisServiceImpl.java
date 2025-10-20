@@ -29,7 +29,7 @@ public class AnalysisServiceImpl implements AnalysisService {
 	private String geminiApiKey;
 
 	private static final Logger log = LoggerFactory.getLogger(AnalysisServiceImpl.class);
-	private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
 	@Override
 	public AnalysisResultDTO analyzeDream(AnalysisRequestDTO request) {

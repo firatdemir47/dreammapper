@@ -1,6 +1,8 @@
 package com.dreammapper.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +23,11 @@ public class AnalysisController {
 	private final AnalysisService analysisService;
 
 	@PostMapping("/dream")
-	public ResponseEntity<AnalysisResultDTO> analyze(@Valid @RequestBody AnalysisRequestDTO request) {
+	public ResponseEntity<AnalysisResultDTO> analyze(@Valid @RequestBody AnalysisRequestDTO request,
+			@AuthenticationPrincipal UserDetails principal) {
+		if (principal != null && request.getUserId() == null) {
+			// optionally set user context in future
+		}
 		AnalysisResultDTO result = analysisService.analyzeDream(request);
 		return ResponseEntity.ok(result);
 	}

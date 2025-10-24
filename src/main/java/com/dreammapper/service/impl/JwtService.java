@@ -44,14 +44,27 @@ public class JwtService {
     }
 
     private SecretKey getSigningKey() {
+        // Ensure key is at least 256 bits (32 bytes)
+        byte[] keyBytes;
         try {
             // Try base64 first
-            byte[] decoded = java.util.Base64.getDecoder().decode(jwtSecret);
-            return Keys.hmacShaKeyFor(decoded);
+            keyBytes = java.util.Base64.getDecoder().decode(jwtSecret);
         } catch (IllegalArgumentException ex) {
-            // Fallback to raw bytes (ensure >= 32 chars)
-            byte[] raw = jwtSecret.getBytes(StandardCharsets.UTF_8);
-            return Keys.hmacShaKeyFor(raw);
+            // Fallback to raw bytes
+            keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
         }
+        
+        // Ensure minimum 32 bytes for HS256
+        if (keyBytes.length < 32) {
+            // Pad with zeros or repeat the key
+            byte[] paddedKey = new byte[32];
+            System.arraycopy(keyBytes, 0, paddedKey, 0, Math.min(keyBytes.length, 32));
+            for (int i = keyBytes.length; i < 32; i++) {
+                paddedKey[i] = keyBytes[i % keyBytes.length];
+            }
+            keyBytes = paddedKey;
+        }
+        
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 }

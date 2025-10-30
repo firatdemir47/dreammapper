@@ -14,6 +14,10 @@ import com.dreammapper.repository.UserRepository;
 import com.dreammapper.service.impl.JwtService;
 
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -24,11 +28,14 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
-    record LoginRequest(String email, String password) {}
-    record TokenResponse(String token) {}
+    public record LoginRequest(
+            @NotBlank @Email String email,
+            @NotBlank @Size(min = 6, max = 100) String password
+    ) {}
+    public record TokenResponse(String token) {}
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody LoginRequest req) {
+    public ResponseEntity<?> register(@Valid @RequestBody LoginRequest req) {
         if (userRepository.findByEmail(req.email()).isPresent()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Email already in use"));
         }
@@ -43,7 +50,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest req) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req) {
         var u = userRepository.findByEmail(req.email())
                 .orElse(null);
         if (u == null || !passwordEncoder.matches(req.password(), u.getPassword())) {

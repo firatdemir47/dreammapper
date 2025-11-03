@@ -19,4 +19,7 @@ public class AnalysisRequestDTO {
 
 	private Long userId;
 
+	// Optional: link analysis to an existing dream
+	private Long dreamId;
+
 }

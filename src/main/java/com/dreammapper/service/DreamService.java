@@ -17,4 +17,6 @@ public interface DreamService {
 	Optional<Dream> getDreamById(Long id);
 
 	void deleteDream(Long id);
+
+	List<Dream> search(String q, String tags, Boolean favorite);
 }

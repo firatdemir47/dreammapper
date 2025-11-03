@@ -47,4 +47,11 @@ public class DreamServiceImpl implements DreamService {
 
 	}
 
+	@Override
+	public List<Dream> search(String q, String tags, Boolean favorite) {
+		String qq = (q == null || q.isBlank()) ? null : q;
+		String t = (tags == null || tags.isBlank()) ? null : tags;
+		return dreamRepository.search(qq, t, favorite);
+	}
+
 }

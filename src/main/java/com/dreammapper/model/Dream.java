@@ -36,6 +36,12 @@ public class Dream {
 
 	private String mood;
 
+	// Comma-separated tags for simple filtering
+	@Column(columnDefinition = "TEXT")
+	private String tagsText;
+
+	private Boolean favorite;
+
 	private LocalDateTime createdAt;
 
 	@ManyToOne
@@ -45,5 +51,6 @@ public class Dream {
 	@PrePersist
 	public void prePersist() {
 		createdAt = LocalDateTime.now();
+		if (favorite == null) favorite = false;
 	}
 }

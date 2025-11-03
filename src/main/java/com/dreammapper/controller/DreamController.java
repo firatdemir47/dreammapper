@@ -6,10 +6,12 @@ import java.util.stream.Collectors;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dreammapper.dto.DreamDTO;
@@ -64,5 +66,35 @@ public class DreamController {
 	public ResponseEntity<Void> deleteDream(@PathVariable Long id) {
 		dreamService.deleteDream(id);
 		return ResponseEntity.noContent().build();
+	}
+
+	@GetMapping("/search")
+	public ResponseEntity<List<DreamDTO>> search(
+			@RequestParam(required = false) String q,
+			@RequestParam(required = false) String tags,
+			@RequestParam(required = false) Boolean favorite) {
+		List<DreamDTO> results = dreamService.search(q, tags, favorite).stream().map(DreamMapper::toDTO)
+				.collect(Collectors.toList());
+		return ResponseEntity.ok(results);
+	}
+
+	@PatchMapping("/{id}/favorite")
+	public ResponseEntity<DreamDTO> setFavorite(@PathVariable Long id, @RequestParam boolean value) {
+		var dreamOpt = dreamService.getDreamById(id);
+		if (dreamOpt.isEmpty()) return ResponseEntity.notFound().build();
+		var d = dreamOpt.get();
+		d.setFavorite(value);
+		var saved = dreamService.saveDream(d);
+		return ResponseEntity.ok(DreamMapper.toDTO(saved));
+	}
+
+	@PatchMapping("/{id}/tags")
+	public ResponseEntity<DreamDTO> setTags(@PathVariable Long id, @RequestParam String tags) {
+		var dreamOpt = dreamService.getDreamById(id);
+		if (dreamOpt.isEmpty()) return ResponseEntity.notFound().build();
+		var d = dreamOpt.get();
+		d.setTagsText(tags);
+		var saved = dreamService.saveDream(d);
+		return ResponseEntity.ok(DreamMapper.toDTO(saved));
 	}
 }

@@ -11,6 +11,7 @@ public class DreamMapper {
 			return null;
 
 		return DreamDTO.builder().id(dream.getId()).description(dream.getDescription()).mood(dream.getMood())
+				.tagsText(dream.getTagsText()).favorite(dream.getFavorite())
 				.createdAt(dream.getCreatedAt()).userId(dream.getUser() != null ? dream.getUser().getId() : null)
 				.build();
 	}
@@ -20,6 +21,7 @@ public class DreamMapper {
 			return null;
 
 		return Dream.builder().id(dto.getId()).description(dto.getDescription()).mood(dto.getMood())
+				.tagsText(dto.getTagsText()).favorite(dto.getFavorite())
 				.createdAt(dto.getCreatedAt()).user(user).build();
 	}
 }

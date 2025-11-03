@@ -23,6 +23,10 @@ public class DreamDTO {
 
 	private String mood;
 
+    private String tagsText;
+
+    private Boolean favorite;
+
 	private LocalDateTime createdAt;
 
 	private Long userId;

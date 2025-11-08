@@ -43,6 +43,23 @@ public class JwtService {
                 .getSubject();
     }
 
+    public Long extractUserId(String token) {
+        try {
+            var claims = Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            Object uid = claims.get("uid");
+            if (uid instanceof Number) {
+                return ((Number) uid).longValue();
+            }
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private SecretKey getSigningKey() {
         // Ensure key is at least 256 bits (32 bytes)
         byte[] keyBytes;

@@ -38,25 +38,65 @@ public class UserController {
 
 	@PostMapping
 	public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
-		User user = UserMapper.toEntity(userDTO);
-		User savedUser = userService.saveUser(user);
-		return ResponseEntity.ok(UserMapper.toDTO(savedUser));
+		// Bu endpoint register için kullanılıyor, AuthController'da zaten var
+		// Bu endpoint'i kaldırabiliriz veya sadece admin için bırakabiliriz
+		// Şimdilik kaldıralım veya authenticated yapalım
+		return ResponseEntity.status(403).build();
 	}
 
 	@GetMapping
-	public ResponseEntity<List<UserDTO>> getAllUsers() {
-		List<UserDTO> users = userService.getAllUsers().stream().map(UserMapper::toDTO).collect(Collectors.toList());
-		return ResponseEntity.ok(users);
+	public ResponseEntity<List<UserDTO>> getAllUsers(@AuthenticationPrincipal UserDetails principal) {
+		// Bu endpoint'i kaldıralım veya sadece admin için bırakalım
+		// Şimdilik kaldıralım
+		return ResponseEntity.status(403).build();
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+	public ResponseEntity<UserDTO> getUserById(@PathVariable Long id,
+			@AuthenticationPrincipal UserDetails principal) {
+		if (principal == null) {
+			return ResponseEntity.status(401).build();
+		}
+
+		User currentUser = userRepository.findByEmail(principal.getUsername())
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		// Kullanıcı sadece kendi bilgilerini görebilir
+		if (!id.equals(currentUser.getId())) {
+			return ResponseEntity.status(403).build();
+		}
+
 		return userService.getUserById(id).map(UserMapper::toDTO).map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
 	}
 
+	@GetMapping("/me")
+	public ResponseEntity<UserDTO> getCurrentUser(@AuthenticationPrincipal UserDetails principal) {
+		if (principal == null) {
+			return ResponseEntity.status(401).build();
+		}
+
+		User currentUser = userRepository.findByEmail(principal.getUsername())
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		return ResponseEntity.ok(UserMapper.toDTO(currentUser));
+	}
+
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+	public ResponseEntity<Void> deleteUser(@PathVariable Long id,
+			@AuthenticationPrincipal UserDetails principal) {
+		if (principal == null) {
+			return ResponseEntity.status(401).build();
+		}
+
+		User currentUser = userRepository.findByEmail(principal.getUsername())
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		// Kullanıcı sadece kendi hesabını silebilir
+		if (!id.equals(currentUser.getId())) {
+			return ResponseEntity.status(403).build();
+		}
+
 		userService.deleteUser(id);
 		return ResponseEntity.noContent().build();
 	}

@@ -20,4 +20,6 @@ public interface UserService {
 	User updateProfile(Long userId, UpdateProfileDTO dto);
 
 	void changePassword(Long userId, ChangePasswordDTO dto);
+
+	Optional<User> getUserByEmail(String email);
 }

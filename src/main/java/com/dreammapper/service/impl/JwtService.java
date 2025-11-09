@@ -22,6 +22,9 @@ public class JwtService {
     @Value("${jwt.expiration-ms:86400000}")
     private long jwtExpirationMs;
 
+    @Value("${jwt.refresh-expiration-ms:604800000}")
+    private long refreshTokenExpirationMs;
+
     public String generateToken(String subject, Map<String, Object> claims) {
         Date now = new Date();
         Date exp = new Date(now.getTime() + jwtExpirationMs);
@@ -57,6 +60,44 @@ public class JwtService {
             return null;
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    public String generateRefreshToken(String subject, Map<String, Object> claims) {
+        Date now = new Date();
+        Date exp = new Date(now.getTime() + refreshTokenExpirationMs);
+        return Jwts.builder()
+                .setSubject(subject)
+                .addClaims(claims)
+                .claim("type", "refresh")
+                .setIssuedAt(now)
+                .setExpiration(exp)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public boolean isTokenValid(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean isRefreshToken(String token) {
+        try {
+            var claims = Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return "refresh".equals(claims.get("type"));
+        } catch (Exception e) {
+            return false;
         }
     }
 

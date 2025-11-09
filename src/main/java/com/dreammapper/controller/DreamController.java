@@ -3,6 +3,9 @@ package com.dreammapper.controller;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -55,7 +59,10 @@ public class DreamController {
 	}
 
 	@GetMapping
-	public ResponseEntity<List<DreamDTO>> getMyDreams(@AuthenticationPrincipal UserDetails principal) {
+	public ResponseEntity<?> getMyDreams(
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int size,
+			@AuthenticationPrincipal UserDetails principal) {
 		if (principal == null) {
 			return ResponseEntity.status(401).build();
 		}
@@ -63,9 +70,10 @@ public class DreamController {
 		User currentUser = userService.getUserByEmail(principal.getUsername())
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-		List<DreamDTO> dreams = dreamService.getDreamsByUser(currentUser).stream().map(DreamMapper::toDTO)
-				.collect(Collectors.toList());
-		return ResponseEntity.ok(dreams);
+		Pageable pageable = PageRequest.of(page, size);
+		Page<Dream> dreamsPage = dreamService.getDreamsByUser(currentUser, pageable);
+		Page<DreamDTO> dreamsDtoPage = dreamsPage.map(DreamMapper::toDTO);
+		return ResponseEntity.ok(dreamsDtoPage);
 	}
 
 	@GetMapping("/user/{userId}")
@@ -212,6 +220,39 @@ public class DreamController {
 
 		dream.setTagsText(tags);
 		Dream saved = dreamService.saveDream(dream);
+		return ResponseEntity.ok(DreamMapper.toDTO(saved));
+	}
+
+	@PutMapping("/{id}")
+	public ResponseEntity<DreamDTO> updateDream(@PathVariable Long id, @RequestBody DreamDTO dreamDTO,
+			@AuthenticationPrincipal UserDetails principal) {
+		if (principal == null) {
+			return ResponseEntity.status(401).build();
+		}
+
+		User currentUser = userService.getUserByEmail(principal.getUsername())
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		Dream existingDream = dreamService.getDreamById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Dream not found"));
+
+		// Kullanıcı sadece kendi rüyasını güncelleyebilir
+		if (!existingDream.getUser().getId().equals(currentUser.getId())) {
+			return ResponseEntity.status(403).build();
+		}
+
+		// Kullanıcı sadece kendi adına rüya güncelleyebilir
+		if (dreamDTO.getUserId() != null && !dreamDTO.getUserId().equals(currentUser.getId())) {
+			return ResponseEntity.status(403).build();
+		}
+
+		// Rüyayı güncelle
+		existingDream.setDescription(dreamDTO.getDescription());
+		existingDream.setMood(dreamDTO.getMood());
+		existingDream.setTagsText(dreamDTO.getTagsText());
+		existingDream.setFavorite(dreamDTO.getFavorite() != null ? dreamDTO.getFavorite() : false);
+
+		Dream saved = dreamService.saveDream(existingDream);
 		return ResponseEntity.ok(DreamMapper.toDTO(saved));
 	}
 }

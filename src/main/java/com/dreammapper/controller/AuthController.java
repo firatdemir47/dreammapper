@@ -32,7 +32,8 @@ public class AuthController {
             @NotBlank @Email String email,
             @NotBlank @Size(min = 6, max = 100) String password
     ) {}
-    public record TokenResponse(String token) {}
+    public record TokenResponse(String token, String refreshToken) {}
+    public record RefreshTokenRequest(@NotBlank String refreshToken) {}
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody LoginRequest req) {
@@ -46,7 +47,8 @@ public class AuthController {
                 .build();
         userRepository.save(u);
         String token = jwtService.generateToken(u.getEmail(), Map.of("uid", u.getId()));
-        return ResponseEntity.ok(new TokenResponse(token));
+        String refreshToken = jwtService.generateRefreshToken(u.getEmail(), Map.of("uid", u.getId()));
+        return ResponseEntity.ok(new TokenResponse(token, refreshToken));
     }
 
     @PostMapping("/login")
@@ -57,6 +59,29 @@ public class AuthController {
             return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
         }
         String token = jwtService.generateToken(u.getEmail(), Map.of("uid", u.getId()));
-        return ResponseEntity.ok(new TokenResponse(token));
+        String refreshToken = jwtService.generateRefreshToken(u.getEmail(), Map.of("uid", u.getId()));
+        return ResponseEntity.ok(new TokenResponse(token, refreshToken));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@Valid @RequestBody RefreshTokenRequest req) {
+        if (!jwtService.isTokenValid(req.refreshToken()) || !jwtService.isRefreshToken(req.refreshToken())) {
+            return ResponseEntity.status(401).body(Map.of("error", "Invalid refresh token"));
+        }
+
+        try {
+            String email = jwtService.extractSubject(req.refreshToken());
+            Long userId = jwtService.extractUserId(req.refreshToken());
+            
+            if (email == null || userId == null) {
+                return ResponseEntity.status(401).body(Map.of("error", "Invalid refresh token"));
+            }
+
+            String newToken = jwtService.generateToken(email, Map.of("uid", userId));
+            String newRefreshToken = jwtService.generateRefreshToken(email, Map.of("uid", userId));
+            return ResponseEntity.ok(new TokenResponse(newToken, newRefreshToken));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Invalid refresh token"));
+        }
     }
 }

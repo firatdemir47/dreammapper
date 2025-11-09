@@ -19,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.dreammapper.dto.AnalysisRequestDTO;
 import com.dreammapper.dto.AnalysisResultDTO;
+import com.dreammapper.exception.ResourceNotFoundException;
 import com.dreammapper.model.Dream;
 import com.dreammapper.model.DreamAnalysis;
 import com.dreammapper.model.User;
@@ -43,6 +44,15 @@ public class AnalysisServiceImpl implements AnalysisService {
 
 	@Override
 	public AnalysisResultDTO analyzeDream(AnalysisRequestDTO request) {
+		// Eğer dreamId verilmişse, kullanıcının kendi rüyası olduğunu kontrol et
+		if (request.getDreamId() != null && request.getUserId() != null) {
+			Dream dream = dreamRepository.findById(request.getDreamId())
+					.orElseThrow(() -> new ResourceNotFoundException("Dream not found"));
+			if (!dream.getUser().getId().equals(request.getUserId())) {
+				throw new IllegalArgumentException("User does not have access to this dream");
+			}
+		}
+
         String text = preprocess(Optional.ofNullable(request.getText()).orElse(""));
         if (text.isBlank()) {
             return AnalysisResultDTO.builder()
@@ -207,4 +217,27 @@ public class AnalysisServiceImpl implements AnalysisService {
         sb.append('}');
         return sb.toString();
     }
+
+	@Override
+	public List<AnalysisResultDTO> getDreamAnalysisHistory(Long dreamId, Long userId) {
+		Dream dream = dreamRepository.findById(dreamId)
+				.orElseThrow(() -> new ResourceNotFoundException("Dream not found"));
+
+		// Kullanıcı kontrolü
+		if (!dream.getUser().getId().equals(userId)) {
+			throw new IllegalArgumentException("User does not have access to this dream");
+		}
+
+		List<DreamAnalysis> analyses = dreamAnalysisRepository.findByDreamOrderByCreatedAtDesc(dream);
+		return analyses.stream()
+				.map(a -> AnalysisResultDTO.builder()
+						.summary(a.getSummary())
+						.dominantEmotion(a.getDominantEmotion())
+						.symbols(a.getSymbolsText() == null || a.getSymbolsText().isBlank() 
+								? List.of() 
+								: java.util.Arrays.asList(a.getSymbolsText().split(",")))
+						.scores(java.util.Collections.emptyMap())
+						.build())
+				.toList();
+	}
 }

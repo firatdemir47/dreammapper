@@ -2,6 +2,8 @@ package com.dreammapper.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,6 +15,7 @@ import com.dreammapper.model.User;
 @Repository
 public interface DreamRepository extends JpaRepository<Dream, Long> {
 	List<Dream> findByUser(User user);
+	Page<Dream> findByUser(User user, Pageable pageable);
 
     @Query("SELECT d FROM Dream d WHERE (:q IS NULL OR LOWER(d.description) LIKE LOWER(CONCAT('%', :q, '%')))"
          + " AND (:tags IS NULL OR LOWER(COALESCE(d.tagsText, '')) LIKE LOWER(CONCAT('%', :tags, '%')))"

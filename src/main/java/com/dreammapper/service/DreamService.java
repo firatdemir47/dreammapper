@@ -3,6 +3,9 @@ package com.dreammapper.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.dreammapper.model.Dream;
 import com.dreammapper.model.User;
 
@@ -11,6 +14,8 @@ public interface DreamService {
 	Dream saveDream(Dream dream);
 
 	List<Dream> getDreamsByUser(User user);
+
+	Page<Dream> getDreamsByUser(User user, Pageable pageable);
 
 	List<Dream> getAllDreams();
 

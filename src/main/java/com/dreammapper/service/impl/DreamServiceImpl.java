@@ -3,6 +3,8 @@ package com.dreammapper.service.impl;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.dreammapper.model.Dream;
@@ -28,6 +30,11 @@ public class DreamServiceImpl implements DreamService {
 	public List<Dream> getDreamsByUser(User user) {
 
 		return dreamRepository.findByUser(user);
+	}
+
+	@Override
+	public Page<Dream> getDreamsByUser(User user, Pageable pageable) {
+		return dreamRepository.findByUser(user, pageable);
 	}
 
 	@Override

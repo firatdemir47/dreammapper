@@ -22,7 +22,6 @@ import com.dreammapper.dto.UserDTO;
 import com.dreammapper.exception.ResourceNotFoundException;
 import com.dreammapper.mapper.UserMapper;
 import com.dreammapper.model.User;
-import com.dreammapper.repository.UserRepository;
 import com.dreammapper.service.UserService;
 
 import jakarta.validation.Valid;
@@ -34,7 +33,6 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 
 	private final UserService userService;
-	private final UserRepository userRepository;
 
 	@PostMapping
 	public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
@@ -58,7 +56,7 @@ public class UserController {
 			return ResponseEntity.status(401).build();
 		}
 
-		User currentUser = userRepository.findByEmail(principal.getUsername())
+		User currentUser = userService.getUserByEmail(principal.getUsername())
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		// Kullanıcı sadece kendi bilgilerini görebilir
@@ -76,7 +74,7 @@ public class UserController {
 			return ResponseEntity.status(401).build();
 		}
 
-		User currentUser = userRepository.findByEmail(principal.getUsername())
+		User currentUser = userService.getUserByEmail(principal.getUsername())
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		return ResponseEntity.ok(UserMapper.toDTO(currentUser));
@@ -89,7 +87,7 @@ public class UserController {
 			return ResponseEntity.status(401).build();
 		}
 
-		User currentUser = userRepository.findByEmail(principal.getUsername())
+		User currentUser = userService.getUserByEmail(principal.getUsername())
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		// Kullanıcı sadece kendi hesabını silebilir

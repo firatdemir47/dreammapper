@@ -21,7 +21,6 @@ import com.dreammapper.exception.ResourceNotFoundException;
 import com.dreammapper.mapper.DreamMapper;
 import com.dreammapper.model.Dream;
 import com.dreammapper.model.User;
-import com.dreammapper.repository.UserRepository;
 import com.dreammapper.service.DreamService;
 import com.dreammapper.service.UserService;
 
@@ -34,7 +33,6 @@ public class DreamController {
 
 	private final DreamService dreamService;
 	private final UserService userService;
-	private final UserRepository userRepository;
 
 	@PostMapping
 	public ResponseEntity<DreamDTO> saveDream(@RequestBody DreamDTO dreamDTO,
@@ -43,7 +41,7 @@ public class DreamController {
 			return ResponseEntity.status(401).build();
 		}
 
-		User currentUser = userRepository.findByEmail(principal.getUsername())
+		User currentUser = userService.getUserByEmail(principal.getUsername())
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		// Kullanıcı sadece kendi adına rüya ekleyebilir
@@ -62,7 +60,7 @@ public class DreamController {
 			return ResponseEntity.status(401).build();
 		}
 
-		User currentUser = userRepository.findByEmail(principal.getUsername())
+		User currentUser = userService.getUserByEmail(principal.getUsername())
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		List<DreamDTO> dreams = dreamService.getDreamsByUser(currentUser).stream().map(DreamMapper::toDTO)
@@ -77,7 +75,7 @@ public class DreamController {
 			return ResponseEntity.status(401).build();
 		}
 
-		User currentUser = userRepository.findByEmail(principal.getUsername())
+		User currentUser = userService.getUserByEmail(principal.getUsername())
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		// Kullanıcı sadece kendi rüyalarını görebilir
@@ -98,7 +96,7 @@ public class DreamController {
 			return ResponseEntity.status(401).build();
 		}
 
-		User currentUser = userRepository.findByEmail(principal.getUsername())
+		User currentUser = userService.getUserByEmail(principal.getUsername())
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		return dreamService.getDreamById(id)
@@ -120,7 +118,7 @@ public class DreamController {
 			return ResponseEntity.status(401).build();
 		}
 
-		User currentUser = userRepository.findByEmail(principal.getUsername())
+		User currentUser = userService.getUserByEmail(principal.getUsername())
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		Dream dream = dreamService.getDreamById(id)
@@ -145,7 +143,7 @@ public class DreamController {
 			return ResponseEntity.status(401).build();
 		}
 
-		User currentUser = userRepository.findByEmail(principal.getUsername())
+		User currentUser = userService.getUserByEmail(principal.getUsername())
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		// Sadece kullanıcının kendi rüyalarında arama yap
@@ -178,7 +176,7 @@ public class DreamController {
 			return ResponseEntity.status(401).build();
 		}
 
-		User currentUser = userRepository.findByEmail(principal.getUsername())
+		User currentUser = userService.getUserByEmail(principal.getUsername())
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		Dream dream = dreamService.getDreamById(id)
@@ -201,7 +199,7 @@ public class DreamController {
 			return ResponseEntity.status(401).build();
 		}
 
-		User currentUser = userRepository.findByEmail(principal.getUsername())
+		User currentUser = userService.getUserByEmail(principal.getUsername())
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		Dream dream = dreamService.getDreamById(id)

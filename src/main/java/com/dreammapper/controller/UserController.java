@@ -106,7 +106,7 @@ public class UserController {
 			return ResponseEntity.status(401).build();
 		}
 
-		User user = userRepository.findByEmail(principal.getUsername())
+		User user = userService.getUserByEmail(principal.getUsername())
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		User updatedUser = userService.updateProfile(user.getId(), dto);
@@ -120,7 +120,7 @@ public class UserController {
 			return ResponseEntity.status(401).build();
 		}
 
-		User user = userRepository.findByEmail(principal.getUsername())
+		User user = userService.getUserByEmail(principal.getUsername())
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		try {

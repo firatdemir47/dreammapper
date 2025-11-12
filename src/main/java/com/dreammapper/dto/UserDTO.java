@@ -1,5 +1,7 @@
 package com.dreammapper.dto;
 
+import java.time.LocalDateTime;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -24,4 +26,6 @@ public class UserDTO {
 	@NotBlank(message = "Email cannot be empty")
 	private String email;
 
+	private LocalDateTime createdAt;
+	private LocalDateTime updatedAt;
 }

@@ -9,8 +9,13 @@ public class UserMapper {
 		if (user == null)
 			return null;
 
-		return UserDTO.builder().id(user.getId()).name(user.getName()).email(user.getEmail()).build();
-
+		return UserDTO.builder()
+				.id(user.getId())
+				.name(user.getName())
+				.email(user.getEmail())
+				.createdAt(user.getCreatedAt())
+				.updatedAt(user.getUpdatedAt())
+				.build();
 	}
 
 	public static User toEntity(UserDTO dto) {

@@ -28,6 +28,7 @@ import com.dreammapper.model.User;
 import com.dreammapper.service.DreamService;
 import com.dreammapper.service.UserService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController

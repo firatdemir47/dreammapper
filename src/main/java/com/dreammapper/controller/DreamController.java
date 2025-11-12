@@ -224,7 +224,7 @@ public class DreamController {
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<DreamDTO> updateDream(@PathVariable Long id, @RequestBody DreamDTO dreamDTO,
+	public ResponseEntity<DreamDTO> updateDream(@PathVariable Long id, @Valid @RequestBody DreamDTO dreamDTO,
 			@AuthenticationPrincipal UserDetails principal) {
 		if (principal == null) {
 			return ResponseEntity.status(401).build();

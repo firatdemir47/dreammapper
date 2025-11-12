@@ -38,6 +38,8 @@ public class DreamAnalysis {
     private String summary;
 
     private String dominantEmotion;
+    
+    private String category;
 
     // Comma-separated list of symbols for simplicity
     @Column(columnDefinition = "TEXT")

@@ -23,4 +23,6 @@ public class AnalysisResultDTO {
 	private List<String> symbols;
 
 	private Map<String, Double> scores;
+	
+	private String category;
 }

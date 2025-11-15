@@ -25,7 +25,9 @@ import com.dreammapper.exception.ResourceNotFoundException;
 import com.dreammapper.mapper.DreamMapper;
 import com.dreammapper.model.Dream;
 import com.dreammapper.model.User;
+import com.dreammapper.dto.SimilarDreamDTO;
 import com.dreammapper.service.DreamService;
+import com.dreammapper.service.SimilarityService;
 import com.dreammapper.service.UserService;
 
 import jakarta.validation.Valid;
@@ -38,6 +40,7 @@ public class DreamController {
 
 	private final DreamService dreamService;
 	private final UserService userService;
+	private final SimilarityService similarityService;
 
 	@PostMapping
 	public ResponseEntity<DreamDTO> saveDream(@RequestBody DreamDTO dreamDTO,
@@ -255,5 +258,47 @@ public class DreamController {
 
 		Dream saved = dreamService.saveDream(existingDream);
 		return ResponseEntity.ok(DreamMapper.toDTO(saved));
+	}
+
+	@GetMapping("/{id}/similar")
+	public ResponseEntity<List<SimilarDreamDTO>> getSimilarDreams(
+			@PathVariable Long id,
+			@RequestParam(defaultValue = "5") int limit,
+			@RequestParam(defaultValue = "0.5") double minSimilarity,
+			@AuthenticationPrincipal UserDetails principal) {
+		if (principal == null) {
+			return ResponseEntity.status(401).build();
+		}
+
+		User currentUser = userService.getUserByEmail(principal.getUsername())
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		Dream dream = dreamService.getDreamById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Dream not found"));
+
+		// Kullanıcı sadece kendi rüyasını sorgulayabilir
+		if (!dream.getUser().getId().equals(currentUser.getId())) {
+			return ResponseEntity.status(403).build();
+		}
+
+		List<SimilarDreamDTO> similarDreams = similarityService.findSimilarDreams(
+				dream, currentUser, limit, minSimilarity);
+		return ResponseEntity.ok(similarDreams);
+	}
+
+	@GetMapping("/recurring")
+	public ResponseEntity<List<List<SimilarDreamDTO>>> getRecurringDreams(
+			@RequestParam(defaultValue = "0.7") double minSimilarity,
+			@AuthenticationPrincipal UserDetails principal) {
+		if (principal == null) {
+			return ResponseEntity.status(401).build();
+		}
+
+		User currentUser = userService.getUserByEmail(principal.getUsername())
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		List<List<SimilarDreamDTO>> recurringDreams = similarityService.findRecurringDreams(
+				currentUser, minSimilarity);
+		return ResponseEntity.ok(recurringDreams);
 	}
 }

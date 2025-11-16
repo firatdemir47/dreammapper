@@ -25,7 +25,9 @@ import com.dreammapper.exception.ResourceNotFoundException;
 import com.dreammapper.mapper.DreamMapper;
 import com.dreammapper.model.Dream;
 import com.dreammapper.model.User;
+import com.dreammapper.dto.DreamComparisonDTO;
 import com.dreammapper.dto.SimilarDreamDTO;
+import com.dreammapper.service.ComparisonService;
 import com.dreammapper.service.DreamService;
 import com.dreammapper.service.SimilarityService;
 import com.dreammapper.service.UserService;
@@ -41,6 +43,7 @@ public class DreamController {
 	private final DreamService dreamService;
 	private final UserService userService;
 	private final SimilarityService similarityService;
+	private final ComparisonService comparisonService;
 
 	@PostMapping
 	public ResponseEntity<DreamDTO> saveDream(@RequestBody DreamDTO dreamDTO,
@@ -300,5 +303,26 @@ public class DreamController {
 		List<List<SimilarDreamDTO>> recurringDreams = similarityService.findRecurringDreams(
 				currentUser, minSimilarity);
 		return ResponseEntity.ok(recurringDreams);
+	}
+
+	@GetMapping("/compare")
+	public ResponseEntity<DreamComparisonDTO> compareDreams(
+			@RequestParam Long dream1Id,
+			@RequestParam Long dream2Id,
+			@AuthenticationPrincipal UserDetails principal) {
+		if (principal == null) {
+			return ResponseEntity.status(401).build();
+		}
+
+		User currentUser = userService.getUserByEmail(principal.getUsername())
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		try {
+			DreamComparisonDTO comparison = comparisonService.compareDreamsById(
+					dream1Id, dream2Id, currentUser);
+			return ResponseEntity.ok(comparison);
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.status(403).body(null);
+		}
 	}
 }

@@ -230,6 +230,29 @@ public class DreamController {
 		return ResponseEntity.ok(DreamMapper.toDTO(saved));
 	}
 
+	@PatchMapping("/{id}/notes")
+	public ResponseEntity<DreamDTO> updateNotes(@PathVariable Long id, @RequestParam String notes,
+			@AuthenticationPrincipal UserDetails principal) {
+		if (principal == null) {
+			return ResponseEntity.status(401).build();
+		}
+
+		User currentUser = userService.getUserByEmail(principal.getUsername())
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		Dream dream = dreamService.getDreamById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Dream not found"));
+
+		// Kullanıcı sadece kendi rüyasını değiştirebilir
+		if (!dream.getUser().getId().equals(currentUser.getId())) {
+			return ResponseEntity.status(403).build();
+		}
+
+		dream.setNotes(notes);
+		Dream saved = dreamService.saveDream(dream);
+		return ResponseEntity.ok(DreamMapper.toDTO(saved));
+	}
+
 	@PutMapping("/{id}")
 	public ResponseEntity<DreamDTO> updateDream(@PathVariable Long id, @Valid @RequestBody DreamDTO dreamDTO,
 			@AuthenticationPrincipal UserDetails principal) {
@@ -258,6 +281,7 @@ public class DreamController {
 		existingDream.setMood(dreamDTO.getMood());
 		existingDream.setTagsText(dreamDTO.getTagsText());
 		existingDream.setFavorite(dreamDTO.getFavorite() != null ? dreamDTO.getFavorite() : false);
+		existingDream.setNotes(dreamDTO.getNotes());
 
 		Dream saved = dreamService.saveDream(existingDream);
 		return ResponseEntity.ok(DreamMapper.toDTO(saved));

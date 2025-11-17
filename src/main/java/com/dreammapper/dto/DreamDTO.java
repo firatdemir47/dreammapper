@@ -27,6 +27,8 @@ public class DreamDTO {
 
     private Boolean favorite;
 
+	private String notes;
+
 	private LocalDateTime createdAt;
 
 	private Long userId;

@@ -10,9 +10,15 @@ public class DreamMapper {
 		if (dream == null)
 			return null;
 
-		return DreamDTO.builder().id(dream.getId()).description(dream.getDescription()).mood(dream.getMood())
-				.tagsText(dream.getTagsText()).favorite(dream.getFavorite())
-				.createdAt(dream.getCreatedAt()).userId(dream.getUser() != null ? dream.getUser().getId() : null)
+		return DreamDTO.builder()
+				.id(dream.getId())
+				.description(dream.getDescription())
+				.mood(dream.getMood())
+				.tagsText(dream.getTagsText())
+				.favorite(dream.getFavorite())
+				.notes(dream.getNotes())
+				.createdAt(dream.getCreatedAt())
+				.userId(dream.getUser() != null ? dream.getUser().getId() : null)
 				.build();
 	}
 
@@ -20,8 +26,15 @@ public class DreamMapper {
 		if (dto == null)
 			return null;
 
-		return Dream.builder().id(dto.getId()).description(dto.getDescription()).mood(dto.getMood())
-				.tagsText(dto.getTagsText()).favorite(dto.getFavorite())
-				.createdAt(dto.getCreatedAt()).user(user).build();
+		return Dream.builder()
+				.id(dto.getId())
+				.description(dto.getDescription())
+				.mood(dto.getMood())
+				.tagsText(dto.getTagsText())
+				.favorite(dto.getFavorite())
+				.notes(dto.getNotes())
+				.createdAt(dto.getCreatedAt())
+				.user(user)
+				.build();
 	}
 }

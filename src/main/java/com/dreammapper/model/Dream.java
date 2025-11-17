@@ -42,6 +42,10 @@ public class Dream {
 
 	private Boolean favorite;
 
+	// User notes/annotations for the dream
+	@Column(columnDefinition = "TEXT")
+	private String notes;
+
 	private LocalDateTime createdAt;
 
 	@ManyToOne

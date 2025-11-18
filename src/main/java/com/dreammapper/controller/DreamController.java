@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,6 +30,7 @@ import com.dreammapper.dto.DreamComparisonDTO;
 import com.dreammapper.dto.SimilarDreamDTO;
 import com.dreammapper.service.ComparisonService;
 import com.dreammapper.service.DreamService;
+import com.dreammapper.service.ExportService;
 import com.dreammapper.service.SimilarityService;
 import com.dreammapper.service.UserService;
 
@@ -44,6 +46,7 @@ public class DreamController {
 	private final UserService userService;
 	private final SimilarityService similarityService;
 	private final ComparisonService comparisonService;
+	private final ExportService exportService;
 
 	@PostMapping
 	public ResponseEntity<DreamDTO> saveDream(@RequestBody DreamDTO dreamDTO,
@@ -327,6 +330,30 @@ public class DreamController {
 		List<List<SimilarDreamDTO>> recurringDreams = similarityService.findRecurringDreams(
 				currentUser, minSimilarity);
 		return ResponseEntity.ok(recurringDreams);
+	}
+
+	@GetMapping("/export")
+	public ResponseEntity<byte[]> exportDreams(
+			@RequestParam(defaultValue = "json") String format,
+			@AuthenticationPrincipal UserDetails principal) {
+		if (principal == null) {
+			return ResponseEntity.status(401).build();
+		}
+
+		User currentUser = userService.getUserByEmail(principal.getUsername())
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		try {
+			ExportService.ExportResult result = exportService.exportDreams(currentUser, format);
+			HttpHeaders headers = new HttpHeaders();
+			headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + result.filename() + "\"");
+			headers.add(HttpHeaders.CONTENT_TYPE, result.contentType());
+			return ResponseEntity.ok()
+					.headers(headers)
+					.body(result.content());
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.badRequest().build();
+		}
 	}
 
 	@GetMapping("/compare")

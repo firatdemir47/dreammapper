@@ -14,6 +14,7 @@ import com.dreammapper.model.User;
 @Repository
 public interface DreamAnalysisRepository extends JpaRepository<DreamAnalysis, Long> {
     List<DreamAnalysis> findByDreamOrderByCreatedAtDesc(Dream dream);
+    DreamAnalysis findFirstByDreamOrderByCreatedAtDesc(Dream dream);
     
     @Query("SELECT da FROM DreamAnalysis da WHERE da.dream.user = :user")
     List<DreamAnalysis> findByUser(@Param("user") User user);

@@ -98,11 +98,11 @@ public class ImportServiceImpl implements ImportService {
 
 	private DreamDTO convertToDreamDTO(DreamExportDTO exportDTO) {
 		DreamDTO dto = new DreamDTO();
-		dto.setDescription(exportDTO.description());
-		dto.setMood(exportDTO.mood());
-		dto.setTagsText(exportDTO.tagsText());
-		dto.setFavorite(exportDTO.favorite());
-		dto.setNotes(exportDTO.notes());
+		dto.setDescription(exportDTO.getDescription());
+		dto.setMood(exportDTO.getMood());
+		dto.setTagsText(exportDTO.getTagsText());
+		dto.setFavorite(exportDTO.getFavorite());
+		dto.setNotes(exportDTO.getNotes());
 		// createdAt ve userId set edilmez, yeni rüya olarak kaydedilecek
 		return dto;
 	}

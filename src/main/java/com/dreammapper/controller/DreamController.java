@@ -33,6 +33,7 @@ import com.dreammapper.dto.SimilarDreamDTO;
 import com.dreammapper.service.ComparisonService;
 import com.dreammapper.service.DreamService;
 import com.dreammapper.service.ExportService;
+import com.dreammapper.service.ImportService;
 import com.dreammapper.service.SimilarityService;
 import com.dreammapper.service.UserService;
 
@@ -50,7 +51,6 @@ public class DreamController {
 	private final ComparisonService comparisonService;
 	private final ExportService exportService;
 	private final ImportService importService;
-	private final ExportService exportService;
 
 	@PostMapping
 	public ResponseEntity<DreamDTO> saveDream(@RequestBody DreamDTO dreamDTO,

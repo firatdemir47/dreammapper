@@ -1,6 +1,7 @@
 package com.dreammapper.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpHeaders;
 
 import com.dreammapper.dto.DreamDTO;
 import com.dreammapper.exception.ResourceNotFoundException;
@@ -46,6 +48,8 @@ public class DreamController {
 	private final UserService userService;
 	private final SimilarityService similarityService;
 	private final ComparisonService comparisonService;
+	private final ExportService exportService;
+	private final ImportService importService;
 	private final ExportService exportService;
 
 	@PostMapping
@@ -374,6 +378,31 @@ public class DreamController {
 			return ResponseEntity.ok(comparison);
 		} catch (IllegalArgumentException e) {
 			return ResponseEntity.status(403).body(null);
+		}
+	}
+
+	@PostMapping("/import")
+	public ResponseEntity<Map<String, Object>> importDreams(
+			@RequestBody String jsonData,
+			@AuthenticationPrincipal UserDetails principal) {
+		if (principal == null) {
+			return ResponseEntity.status(401).build();
+		}
+
+		User currentUser = userService.getUserByEmail(principal.getUsername())
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		try {
+			ImportService.ImportResult result = importService.importDreamsFromJson(jsonData, currentUser);
+			Map<String, Object> response = Map.of(
+					"successCount", result.successCount(),
+					"errorCount", result.errorCount(),
+					"errors", result.errors()
+			);
+			return ResponseEntity.ok(response);
+		} catch (Exception e) {
+			return ResponseEntity.badRequest()
+					.body(Map.of("error", "Import hatası: " + e.getMessage()));
 		}
 	}
 }
